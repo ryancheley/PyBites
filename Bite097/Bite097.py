@@ -44,6 +44,3 @@ def get_us_bank_holidays(content=content):
     for k, v in data:
         holidays[k].append(v)
     return holidays['01']
-
-x = get_us_bank_holidays(content)
-print(x)

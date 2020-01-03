@@ -36,11 +36,14 @@ def gen_files():
        -> use last column to filter out directories (= True)
     """
     result = set()
-    file = open(tempfile, 'r')
-    for line in file:
-        if line.split(',')[1].replace('\n', '') != 'True':
-            result.add(line.split(',')[0])
-    yield result
+    with open(tempfile, 'r') as file:
+        for line in file:
+            if line.split(',')[1].replace('\n', '') != 'True':
+                result.add(line.split(',')[0])
+        yield sorted(result)
+
+x = gen_files()
+print(next(x))
 
 
 def diehard_pybites():

@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 CHARACTERS = ['Red Riding Hood',
               # we're omitting 'mother' here for simplicity
               # (= substring grandmother)
@@ -52,4 +54,29 @@ def make_character_index(text=text, characters=CHARACTERS):
        - e.g. ('Grandmother', 'Grandma', 'Granny') -
        then return the former as key.
     """
-    pass
+    answer = defaultdict(list)
+    data = text.split('\n')
+    result = []
+    for d in data:
+        for c in characters:
+            try:
+                if c.lower() in d.lower():
+                    result.append(
+                        (
+                            c.lower(),
+                            data.index(d)
+                        )
+                    )
+            except AttributeError:
+                for item in c:
+                    if item.lower() in d.lower():
+                        if (c[0].lower(),data.index(d)) not in result:
+                            result.append(
+                                (
+                                    c[0].lower(),
+                                    data.index(d)
+                                )
+                            )
+    for k, v in result:
+        answer[k].append(v)
+    return answer

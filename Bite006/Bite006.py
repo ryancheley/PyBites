@@ -35,15 +35,10 @@ def gen_files():
 
        -> use last column to filter out directories (= True)
     """
-    result = set()
-    with open(tempfile, 'r') as file:
-        for line in file:
-            if line.split(',')[1].replace('\n', '') != 'True':
-                result.add(line.split(',')[0])
-        yield sorted(result)
-
-x = gen_files()
-print(next(x))
+    with open(tempfile) as f:
+        for line in f:
+            if "True" in line:
+                yield line.split(',')[0]
 
 
 def diehard_pybites():
@@ -53,4 +48,16 @@ def diehard_pybites():
        Calling this function on the dataset (held tempfile) should return:
        Stats(user='clamytoe', challenge=('01', 7))
     """
-    pass
+    gen = list(gen_files())
+    users = Counter([x.split("/")[1] for x in gen])
+    challenges = Counter([x.split("/")[0] for x in gen])
+    Stats.challenge = challenges.most_common(1)[0]
+    for name in users.most_common():
+        if name[0] not in IGNORE:
+            Stats.user = name[0]
+            break
+    return Stats.user, Stats.challenge
+
+
+d = diehard_pybites()
+print(d)

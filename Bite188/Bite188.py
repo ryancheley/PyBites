@@ -1,6 +1,6 @@
 import os
 import statistics
-from urllib.request import urlretrieve, urlopen
+from urllib.request import urlretrieve
 
 TMP = os.getenv("TMP", "/tmp")
 S3 = 'https://bites-data.s3.us-east-2.amazonaws.com/'
@@ -30,15 +30,11 @@ Estimated variance for sample:
 def get_all_line_counts(data: str = STATS) -> list:
     """Get all 186 line counts from the STATS file,
        returning a list of ints"""
-    # TODO 1: get the 186 ints from downloaded STATS file
-
-    web_url = urlopen(os.path.join(S3, DATA)).read().split(b'\n')
-    for w in web_url:
-        w.decode('UTF-8')
-    return web_url[185], data
-
-g = get_all_line_counts(STATS)
-print(g)
+    result = []
+    with open (data, 'r') as file:
+        for line in file:
+            result.append(int(line.split()[0]))
+    return result
 
 
 def create_stats_report(data=None):
@@ -51,15 +47,18 @@ def create_stats_report(data=None):
 
     # TODO 2: complete this dict, use data list and
     # for the last 3 sample_ variables, use sample list
-    stats = dict(count=None,
-                 min_=None,
-                 max_=None,
-                 mean=None,
-                 pstdev=None,
-                 pvariance=None,
-                 sample_count=None,
-                 sample_stdev=None,
-                 sample_variance=None,
+    stats = dict(count=len(data),
+                 min_=sorted(data)[0],
+                 max_=sorted(data)[-1],
+                 mean=statistics.mean(data),
+                 pstdev=statistics.pstdev(data),
+                 pvariance=statistics.pvariance(data),
+                 sample_count=len(sample),
+                 sample_stdev=statistics.stdev(sample),
+                 sample_variance=statistics.variance(sample),
                  )
 
     return STATS_OUTPUT.format(**stats)
+
+g = create_stats_report(get_all_line_counts(STATS))
+print(g)

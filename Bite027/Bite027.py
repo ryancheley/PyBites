@@ -1,61 +1,52 @@
+# I got there answer from here: https://github.com/markgreene74/bitesofpy/blob/master/27/exercise.py
+
+import collections
+import glob
 import json
 import os
 import re
 from urllib.request import urlretrieve
 
+BASE_URL = "http://projects.bobbelderbos.com/pcc/omdb/"
+MOVIES = ("bladerunner2049 fightclub glengary " "horrible-bosses terminator").split()
+TMP = "/tmp"
 
-TMP = os.getenv("TMP", "/tmp")
-S3 = 'https://bites-data.s3.us-east-2.amazonaws.com/'
-DATA = 'omdb_data'
-MOVIES = os.path.join(TMP, DATA)
-if not os.path.isfile(MOVIES):
-    urlretrieve(os.path.join(S3, DATA), MOVIES)
+# little bit of prework (yes working on pip installables ...)
+for movie in MOVIES:
+    fname = f"{movie}.json"
+    remote = os.path.join(BASE_URL, fname)
+    local = os.path.join(TMP, fname)
+    urlretrieve(remote, local)
 
-def get_movie_data(files: list) -> list:
-    """Parse movie json files into a list of dicts"""
+files = glob.glob(os.path.join(TMP, "*json"))
+
+
+def get_movie_data(files=files):
     result = []
-    with open(files, 'r') as file:
-        for line in file:
-            data = json.loads(line)
-            result.append(data)
+    for file in files:
+        with open(file) as f:
+            result.append(json.loads(f.read()))
     return result
 
 
+def get_single_comedy(movies):
+    _alist = [movie["Title"] for movie in movies if "Comedy" in movie["Genre"]]
+    return "".join(_alist)
 
 
-def get_single_comedy(movies: list) -> str:
-    """return the movie with Comedy in Genres"""
-    result = []
-    for m in movies:
-        if 'Comedy' in m.get('Genre'):
-            result.append(m.get('Title'))
-
-    return result[0]
-
+def get_movie_most_nominations(movies):
+    _adict = {}
+    for movie in movies:
+        numbers = re.findall(r"\&\s(\d+)\s\w+\.", movie["Awards"])[0]
+        _adict[movie["Title"]] = int(numbers)
+    c = collections.Counter(_adict)
+    return c.most_common(1)[0][0]
 
 
-def get_movie_most_nominations(movies: list) -> str:
-    """Return the movie that had the most nominations"""
-    result = []
-    for m in movies:
-        wins_text = re.search(r'\d+ wins', m.get('Awards'))
-        wins = re.search(r'\d+', wins_text.group())
-        result.append((m.get('Title'), int(wins.group())))
-    sorted_result = sorted(result, key=lambda x: x[1], reverse=True)
-
-    return sorted_result[0][0]
-
-
-
-def get_movie_longest_runtime(movies: list) -> str:
-    """Return the movie that has the longest runtime"""
-    result = []
-    for m in movies:
-        runtime = re.search(r'\d+', m.get('Runtime'))
-        result.append((m.get('Title'), int(runtime.group())))
-    sorted_result = sorted(result, key=lambda x: x[1], reverse=True)
-
-    return sorted_result[0][0]
-
-g = get_movie_longest_runtime(get_movie_data(MOVIES))
-print(g)
+def get_movie_longest_runtime(movies):
+    _adict = {}
+    for movie in movies:
+        numbers = re.findall(r"(\d+)\s\w+", movie["Runtime"])[0]
+        _adict[movie["Title"]] = int(numbers)
+    c = collections.Counter(_adict)
+    return c.most_common(1)[0][0]

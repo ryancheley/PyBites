@@ -5,5 +5,9 @@ def sort_words_case_insensitively(words):
        (1995, 19ab = numbers / Happy, happy4you = strings, hence for
         numbers you only need to check the first char of the word)
     """
-    result = sorted(sorted(words, key=str.casefold), key=lambda s: True if (s[0].isnumeric()) else False)
+    naive_sort = sorted(words, key=str.casefold)
+    result = sorted(naive_sort, key=lambda s: True if (s[0].isnumeric()) else False)
     return result
+
+s = sort_words_case_insensitively(sentence.split())
+print(s)

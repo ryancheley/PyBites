@@ -3,22 +3,18 @@ def wc(file_):
        lines/words/chars, and returns a string of these numbers + file, e.g.:
        3 12 60 /tmp/somefile
        (both tabs and spaces are allowed as separator)"""
-    file = open(file_, 'r')
-    lines = 0
-    num_words = 0
-    characters = 0
-    for f in file:
-        lines += 1
-        words = f.split()
-        num_words += len(words)
-        characters = characters + len(f)
-    result = str(lines - 1)+'\t'+str(num_words)+'\t'+str(characters)+'\t'+file_
+    read_file = open(file_, 'r').read()
+    lines = str(len(read_file.splitlines()))
+    words = str(len(read_file.split()))
+    characters = str(len(read_file))
+    file_name = str(file_)
+    result = lines+' '+words+' '+characters+' '+file_name
     return result
 
-w = wc('Bite096.py')
-print(w)
 
-# if __name__ == '__main__':
-#     # make it work from cli like original unix wc
-#     import sys
-#     print(wc(sys.argv[1]))
+
+
+if __name__ == '__main__':
+    # make it work from cli like original unix wc
+    import sys
+    print(wc(sys.argv[1]))

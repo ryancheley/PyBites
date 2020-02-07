@@ -1,12 +1,18 @@
 import re
-def strip_comments(code):
-    # see Bite description
-    regex = re.compile(r'    (\#( .*)\n)|\s*\"{3}.*\n')
-    regex_find = re.findall(regex, code)
-    return regex_find
-    # return code.replace(re.search(regex, code).group(), '')
 
-code = '''
+single_comment = '''
+def hello_world():
+    # A simple comment preceding a simple print statement
+    print("Hello World")
+'''
+
+single_docstring = '''
+def say_hello(name):
+    """A simple function that says hello... Richie style"""
+    print(f"Hello {name}, is it me you're looking for?")
+'''
+
+class_with_method = '''
 class SimpleClass:
     """Class docstrings go here."""
 
@@ -15,5 +21,17 @@ class SimpleClass:
         print(f'Hello {name}')
 '''
 
-s = strip_comments(code)
+def strip_comments(code):
+    result_list = []
+    simple_search = re.compile(r'\#.*\n|\"{3}.*\"{3}\n')
+    simple_comment = re.findall(simple_search, code)
+    for i in code.split('\n'):
+        for j in simple_comment:
+            if j.strip() != i.strip():
+                result_list.append(i)
+    return '\n'.join(result_list)
+
+
+
+s = strip_comments(class_with_method)
 print(s)

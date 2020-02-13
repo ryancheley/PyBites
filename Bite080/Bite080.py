@@ -18,4 +18,23 @@ def check_equality(list1, list2):
        - return SAME_UNORDERED_DEDUPED if they have the same unordered content
          and reduced to unique items
        - return NO_EQUALITY if none of the previous cases match"""
-    pass
+    result = ''
+    if list1 is list2:
+        result = Equality.SAME_REFERENCE
+    elif list1 == list2:
+        result = Equality.SAME_ORDERED
+    elif sorted(list1) == sorted(list2):
+        result = Equality.SAME_UNORDERED
+    elif set(list1) == set(list2):
+        result = Equality.SAME_UNORDERED_DEDUPED
+    else:
+        result = Equality.NO_EQUALITY
+
+    return result
+
+
+a = [1, 2, 3]
+b = [4, 5, 6]
+
+d = check_equality(a, b)
+print(d)

@@ -106,21 +106,26 @@ def get_pycon_events(data=_get_pycon_data()) -> List[PyCon]:
     return a list of PyCon namedtuples. Pay attention to the
     application/ld+json data structure website data.
     """
-    soup = Soup(data, 'html.parser')
-    script_list = []
-    for s in soup.find_all('script', {'type': 'application/ld+json'}):
-        parsed_data = json.loads("".join(s))
-        p = PyCon(
-            parsed_data['name'],
-            parsed_data['location']['address']['addressLocality'],
-            parsed_data['location']['address']['addressCountry'],
-            parse(parsed_data['startDate']),
-            parse(parsed_data['endDate']),
-            parsed_data['url'],
-        )
-        script_list.append(p)
+    soup = Soup(data, "html.parser")
+    results = soup.find_all("script", {"type": "application/ld+json"})
 
-    return script_list
+    pycon_events = []
+    for entry in results:
+        json_data = json.loads(entry.text)
+
+        name = json_data["name"]
+        if "pycon" in name.lower():
+            city = json_data["location"]["address"]["addressLocality"]
+            country = json_data["location"]["address"]["addressCountry"]
+            start_date = parse(json_data["startDate"])
+            end_date = parse(json_data["endDate"])
+            url = json_data["url"]
+
+            pycon_events.append(
+                PyCon(name, city, country, start_date, end_date, url)
+            )
+
+    return pycon_events
 
 
 def filter_pycons(pycons: List[PyCon],
@@ -131,93 +136,10 @@ def filter_pycons(pycons: List[PyCon],
     a list of PyCons that take place in that year and on
     that continent.
     """
-    result = []
-    for p in pycons:
-        if p.start_date.year == year and get_continent(p.country) == continent:
-            result.append(p)
-
-    return result
-
-f = filter_pycons(get_pycon_events(), 2019, 'Europe')
-print(f)
-# pytest Bite256/Bite256.py -vv
-#
-# import datetime
-# import pytest
-#
-# @pytest.fixture(scope="session")
-# def pycon_events():
-#     events = get_pycon_events()
-#     return events
-#
-# print(pycon_events)
-#
-# @pytest.fixture(scope="session")
-# def filtered_pycons(pycon_events):
-#     filtered = filter_pycons(pycon_events)
-#     return filtered
-#
-#
-# def test_get_pycon_events_number(pycon_events):
-#     assert len(pycon_events) == 21
-#
-#
-# def test_get_pycon_events_cities(pycon_events):
-#     actual = {event.city for event in pycon_events}
-#     expected = {
-#         "Accra", "Belgrade", "Belgrade", "Berlin",
-#         "Bratislava", "Cardiff", "Cleveland, OH", "Dublin",
-#         "Florence", "Hyderabad", "Jakarta", "Johannesburg",
-#         "Makati", "Munich", "Nairobi", "Odessa",
-#         "Ostrava", "Puerto Vallarta", "Sydney",
-#         "Taipei", "Toronto",
-#     }
-#     assert actual == expected
-#
-#
-# def test_get_pycon_events_dates(pycon_events):
-#     assert all(
-#         isinstance(event.start_date, datetime.datetime)
-#         for event in pycon_events
-#     )
-#     assert all(isinstance(event.end_date, datetime.datetime)
-#                for event in pycon_events)
-#
-#
-# def test_filter_pycons_number(filtered_pycons):
-#     actual = len(filtered_pycons)
-#     expected = 9
-#     assert actual == expected
-#
-#
-# def test_filter_pycons_cities(filtered_pycons):
-#     actual = {event.city for event in filtered_pycons}
-#     expected = {
-#         "Belgrade", "Berlin", "Bratislava", "Cardiff",
-#         "Dublin", "Florence", "Munich", "Odessa",
-#         "Ostrava",
-#     }
-#     assert actual == expected
-#
-#
-# def test_filter_pycons_dates(filtered_pycons):
-#     assert all(
-#         isinstance(event.start_date, datetime.datetime)
-#         for event in filtered_pycons
-#     )
-#     assert all(
-#         isinstance(event.end_date, datetime.datetime)
-#         for event in filtered_pycons
-#     )
-#
-#
-# def test_filter_pycons_year(filtered_pycons):
-#     actual = {pycon.start_date.year for pycon in filtered_pycons}
-#     expected = {2019}
-#     assert actual == expected
-#
-#
-# def test_filter_pycons_continent(filtered_pycons):
-#     actual = {get_continent(pycon.country) for pycon in filtered_pycons}
-#     expected = {"Europe"}
-#     assert actual == expected
+    filtered_pycons = [
+        pycon
+        for pycon in pycons
+        if pycon.start_date.year == year
+        and get_continent(pycon.country) == continent
+    ]
+    return filtered_pycons

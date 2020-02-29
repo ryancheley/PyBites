@@ -58,11 +58,13 @@ def display_books(books, limit=10, year=None):
     """
     result = []
     for b in books:
-        if b.year >= year:
+        try:
+            if b.year >= year:
+                result.append(b.__str__())
+        except TypeError:
             result.append(b.__str__())
 
-    print(result[:limit])
-
+    print(result)
 
 
 def load_data():

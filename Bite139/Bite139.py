@@ -5,15 +5,15 @@ data = """
 +------------+------------+---------+
 | date       | activity   | count   |
 |------------+------------+---------|
-| 2018-11-10 | pcc        | 1       |
-| 2018-11-09 | 100d       | 1       |
-| 2018-11-07 | 100d       | 2       |
-| 2018-10-23 | pcc        | 1       |
-| 2018-10-15 | pcc        | 1       |
-| 2018-10-05 | bite       | 1       |
-| 2018-09-21 | bite       | 4       |
-| 2018-09-18 | bite       | 2       |
-| 2018-09-18 | bite       | 4       |
+| 2018-11-11 | pcc        | 1       |
+| 2018-11-10 | 100d       | 1       |
+| 2018-11-09 | 100d       | 2       |
+| 2018-11-08 | pcc        | 1       |
+| 2018-11-07 | pcc        | 1       |
+| 2018-11-05 | bite       | 4       |
+| 2018-11-04 | bite       | 2       |
+| 2018-11-03 | bite       | 4       |
+| 2018-11-02 | 100d       | 2       |
 +------------+------------+---------+
 """
 
@@ -22,13 +22,13 @@ TODAY = date(2018, 11, 12)
 
 def extract_dates(data):
     """Extract unique dates from DB table representation as shown in Bite"""
-    dates = re.findall(r'\d{4}-\d{2}-\d{2}', data)
+    the_dates = re.findall(r'\d{4}-\d{2}-\d{2}', data)
     result = []
-    for d in dates:
+    for d in the_dates:
         if datetime.strptime(d, '%Y-%m-%d').date() not in result:
             result.append(datetime.strptime(d, '%Y-%m-%d').date())
 
-    return result
+    return sorted(result, reverse=True)
 
 
 def calculate_streak(dates):
@@ -44,32 +44,15 @@ def calculate_streak(dates):
 
        See the tests for more examples that will be used to pass your code.
     """
-    dates = extract_dates(dates)
-    streak_dates = []
-    most_recent_date = sorted(dates, reverse=True)[0]
-    yesterday = TODAY - timedelta(days=1)
-    if most_recent_date >= yesterday:
-        for i, item in enumerate(dates):
-            try:
-                if i <= (TODAY-dates[i]).days == 1:
-                    streak_dates.append(item)
-            except IndexError:
-                pass
+    result = []
+    yesterday = TODAY + timedelta(days=-1)
+    start_list = [TODAY, yesterday]
+    for i in range(len(dates)):
+        if dates[i]+timedelta(days=i) in start_list:
+            result.append(dates[i])
 
-    result = 0
-    try:
-        streak_start_date = sorted(streak_dates)[0]
-        streak_end_date = sorted(streak_dates)[-1]
-        if streak_end_date == TODAY:
-            result = (TODAY - streak_start_date).days + 1
-        else:
-            result = (TODAY - streak_start_date).days
-    except IndexError:
-        pass
+    return len(result)
 
-    return result
-
-
-c = calculate_streak(data)
+c = calculate_streak(extract_dates(data))
 print(c)
 

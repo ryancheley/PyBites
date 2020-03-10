@@ -1,6 +1,6 @@
 import pytest
 
-from scrabble import get_possible_dict_words
+from Bite065.Bite065 import get_possible_dict_words
 
 scrabble_scores = [(1, "E A O I N R T L S U"), (2, "D G"), (3, "B C M P"),
                    (4, "F H V W Y"), (5, "K"), (8, "J X"), (10, "Q Z")]

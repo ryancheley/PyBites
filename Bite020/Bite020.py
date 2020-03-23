@@ -17,19 +17,9 @@ class Account:
     # into a 'rollback' context manager
 
     def __enter__(self):
-        if self.balance < 0:
-            print('debt')
+        self.initial = self._transactions.copy()
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        pass
-
-
-
-
-def account():
-    return Account()
-
-
-a = account()
-print(a.balance)
+        if self.balance < 0:
+            self._transactions = self.initial

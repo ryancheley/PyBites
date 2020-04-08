@@ -28,6 +28,7 @@ class Book:
         self.year = year
         self.rank = rank
         self.rating = float(rating)
+        self.titlecase = title.title()
 
     def __str__(self):
         the_rank = '['+str(self.rank).rjust(3, '0')+'] '
@@ -56,14 +57,15 @@ def display_books(books, limit=10, year=None):
     :param year: integer indicating the oldest year to include
     :return: None
     """
-    result = []
-    for b in books:
+    result = ''
+    for b in books[:limit*2]:
         try:
             if b.year >= year:
-                result.append(b.__str__())
+                result = result + (b.__str__())+'\n'
         except TypeError:
-            result.append(b.__str__())
+            result = result + (b.__str__())+'\n'
 
+    result = '\n'.join(result.rstrip().split('\n')[:limit*2])
     print(result)
 
 
@@ -86,8 +88,12 @@ def load_data():
     for h in html_books:
         try:
             if 'python' in h.find_all('h2', {'class': 'main'})[0].text.lower():
-                first_name = h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[0]
-                last_name = h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[-1]
+                if len(h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()) == 2:
+                    first_name = h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[0]
+                    last_name = h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[-1]
+                else:
+                    first_name = ' '.join(h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[:2])
+                    last_name = h.find_all('h3', {'class': 'authors'})[0].find_all('a')[0].text.split()[-1]
                 book_list.append(
                     Book(
                         # title, author, year, rank, rating
@@ -100,14 +106,19 @@ def load_data():
                 )
         except IndexError:
             pass
-    book_list_sort_by_year_title_author = sorted(book_list, key=operator.attrgetter('year', 'title', 'author'))
-    final_book_list_sort = sorted(book_list_sort_by_year_title_author, key=operator.attrgetter('rating'), reverse=True)
-    return final_book_list_sort
+    # book_list_sort_by_year_title_author = sorted(book_list, key=operator.attrgetter('year', 'title', 'author'))
+    book_list = sorted(book_list, key=operator.attrgetter('author'))
+    book_list = sorted(book_list, key=operator.attrgetter('titlecase'))
+    book_list = sorted(book_list, key=operator.attrgetter('year'))
+    book_list = sorted(book_list, key=operator.attrgetter('rating'), reverse=True)
+    for i, x in enumerate(book_list):
+        x.rank = i+1
+    return book_list
 
 
 def main():
     books = load_data()
-    display_books(books, limit=10, year=2017)
+    display_books(books, limit=5, year=2017)
     """If done correctly, the previous function call should display the
     output below.
     """

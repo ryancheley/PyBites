@@ -9,6 +9,8 @@ html_file = f"{out_dir}/enchantment_list_pc.html"
 HTML_FILE = Path(html_file)
 URL = "https://www.digminecraft.com/lists/enchantment_list_pc.php"
 
+roman_value = {'I': 1, 'II': 2, 'III': 3, 'IV': 4, 'V': 5}
+
 
 class Enchantment:
     """Minecraft enchantment class
@@ -22,14 +24,17 @@ class Enchantment:
         self.max_level = max_level
         self.description = description
         self.items = []
+        try:
+            self.arabic_number = roman_value[self.max_level]
+        except KeyError:
+            self.arabic_number = self.max_level
 
     def __str__(self):
-        result = self.name.title()+' ('+str(self.max_level)+'): '+self.description
+        result = self.name.title()+' ('+str(self.arabic_number)+'): '+self.description
         return result
 
     def __repr__(self):
-        return '['+str(self.max_level)+'] '+self.name.title()
-
+        return '['+str(self.arabic_number)+'] '+self.id_name
 
 
 class Item:
@@ -39,27 +44,42 @@ class Item:
         name, enchantments
     """
     def __init__(self, name):
-        self.name = name
+        self.name = name.title()
         self.enchantments = []
 
     def __str__(self):
-        # ench_str = ''
-        # for e in self.enchantments:
-        #     ench_str += '\n'+e.__repr__()
-        # result = self.name.title()+': \n' + ench_str
-        return self.enchantments.__repr__()
+        enhancements = '\n  '.join(self.enchantments)
 
-# item = Item('clamytoe')
-# item.enchantments.append('ench1')
-# item.enchantments.append('ench2')
-# item.__str__()
+        result = f'{self.name}:\n  {enhancements}'
+        return result
+
 
 def generate_enchantments(soup):
     """Generates a dictionary of Enchantment objects
 
     With the key being the id_name of the enchantment.
     """
-    pass
+    enchantment_dict = {}
+    enchantment_table = soup.find(id='minecraft_items').find_all('tr')
+    for row in enchantment_table[1:]:
+        cells = row.find_all('td')
+        item_id = cells[0].text.split('(')[-1].replace(')', '')
+        item_name = cells[0].text.split('(')[0]
+        max_level = cells[1].text
+        description = cells[2].text
+        items_list = cells[4].find_all('img')[0].attrs['data-src'].split(('/'))[-1].replace('.png', '')\
+            .replace('enchanted', '').replace('iron', '').replace('sm', '').split('_')
+        enchantment_dict[item_id] = Enchantment(
+            item_id,
+            item_name,
+            max_level,
+            description,
+        )
+        for item in items_list:
+            if item != '':
+                enchantment_dict[item_id].items.append(item)
+
+    return enchantment_dict
 
 
 def generate_items(data):
@@ -67,7 +87,19 @@ def generate_items(data):
 
     With the key being the item name.
     """
-    pass
+    item_dict = {}
+    item_list = []
+    for i in data.keys():
+        for item in data[i].items:
+            if item not in item_list:
+                item_list.append(item)
+
+    for i in sorted(item_list):
+        item_dict[i.title()] = Item(i.title())
+        for j in data.keys():
+            if i in data[j].items:
+                item_dict[i.title()].enchantments.append(data[j].__repr__())
+    return item_dict
 
 
 def get_soup(file=HTML_FILE):
@@ -75,7 +107,6 @@ def get_soup(file=HTML_FILE):
     if isinstance(file, Path):
         if not HTML_FILE.is_file():
             urlretrieve(URL, HTML_FILE)
-
         with file.open() as html_source:
             soup = Soup(html_source, "html.parser")
     else:

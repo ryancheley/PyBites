@@ -25,16 +25,16 @@ class Enchantment:
         self.description = description
         self.items = []
         try:
-            self.arabic_number = roman_value[self.max_level]
+            self.max_level = roman_value[self.max_level]
         except KeyError:
-            self.arabic_number = self.max_level
+            self.max_level = self.max_level
 
     def __str__(self):
-        result = self.name.title()+' ('+str(self.arabic_number)+'): '+self.description
+        result = self.name.title()+' ('+str(self.max_level)+'): '+self.description
         return result
 
     def __repr__(self):
-        return '['+str(self.arabic_number)+'] '+self.id_name
+        return '['+str(self.max_level)+'] '+self.id_name
 
 
 class Item:
@@ -44,13 +44,17 @@ class Item:
         name, enchantments
     """
     def __init__(self, name):
-        self.name = name.title()
+        self.name = name.replace('_', ' ')
         self.enchantments = []
 
     def __str__(self):
-        enhancements = '\n  '.join(self.enchantments)
+        sorted_enchantments = sorted(self.enchantments, key=lambda x: x.id_name)
+        enchant_list = []
+        for enchanment in sorted_enchantments:
+            enchant_list.append(enchanment.__repr__())
+        enhancements = '\n  '.join(enchant_list)
 
-        result = f'{self.name}:\n  {enhancements}'
+        result = f'{self.name.title()}: \n  {enhancements}'
         return result
 
 
@@ -68,7 +72,8 @@ def generate_enchantments(soup):
         max_level = cells[1].text
         description = cells[2].text
         items_list = cells[4].find_all('img')[0].attrs['data-src'].split(('/'))[-1].replace('.png', '')\
-            .replace('enchanted', '').replace('iron', '').replace('sm', '').split('_')
+            .replace('enchanted', '').replace('iron', '').replace('sm', '')\
+            .replace('fishing_rod', 'fishingrod').split('_')
         enchantment_dict[item_id] = Enchantment(
             item_id,
             item_name,
@@ -77,7 +82,10 @@ def generate_enchantments(soup):
         )
         for item in items_list:
             if item != '':
-                enchantment_dict[item_id].items.append(item)
+                if item == 'fishingrod':
+                    enchantment_dict[item_id].items.append('fishing_rod')
+                else:
+                    enchantment_dict[item_id].items.append(item)
 
     return enchantment_dict
 
@@ -94,11 +102,11 @@ def generate_items(data):
             if item not in item_list:
                 item_list.append(item)
 
-    for i in sorted(item_list):
-        item_dict[i.title()] = Item(i.title())
+    for i in item_list:
+        item_dict[i] = Item(i.title())
         for j in data.keys():
             if i in data[j].items:
-                item_dict[i.title()].enchantments.append(data[j].__repr__())
+                item_dict[i].enchantments.append(data[j])
     return item_dict
 
 

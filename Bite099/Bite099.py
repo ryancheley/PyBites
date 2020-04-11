@@ -1,13 +1,16 @@
 import string
-from itertools import product
+from itertools import islice
 
 
 def sequence_generator():
     letters = string.ascii_uppercase
     numbers = range(1, len(letters)+1)
-    letters_and_numbers = zip(numbers, letters)
-    return list(letters_and_numbers)
-
+    while True:
+        i = 0
+        while i < 26:
+            yield numbers[i]
+            yield letters[i]
+            i += 1
 
 s = sequence_generator()
-print(s)
+print(list(islice(s, 52, 62)))

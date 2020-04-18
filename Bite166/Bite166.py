@@ -1,6 +1,7 @@
 import configparser
 import re
 
+
 class ToxIniParser:
 
     def __init__(self, ini_file):

@@ -30,16 +30,17 @@ class Promo:
     def _pick_random_bite(self):
         bites_available = []
         for b in BITES:
-            if b not in bites_done:
+            if b not in self.bites_done:
                 bites_available.append(b)
-        try:
+        if bites_available:
             return random.choice(bites_available)
-        except:
+        else:
             raise NoBitesAvailable
 
     def new_bite(self):
-        bites_done.add(self._pick_random_bite())
-
-p = Promo
-
-print(p.__init__)
+        if not self.bites_done:
+            raise NoBitesAvailable
+        else:
+            random_bite = self._pick_random_bite()
+            self.bites_done.add(random_bite)
+            return random_bite
